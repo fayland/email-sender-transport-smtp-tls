@@ -3,7 +3,7 @@ package Email::Sender::Transport::SMTP::TLS;
 # ABSTRACT: Email::Sender with L<Net::SMTP::TLS> (Eg. Gmail)
 
 use Moose;
-with 'Email::Sender::Transport';
+with 'Email::Sender::Transport' => { excludes => 'allow_partial_success' };
 
 use Net::SMTP::TLS;
 use Email::Sender::Failure::Multi;
