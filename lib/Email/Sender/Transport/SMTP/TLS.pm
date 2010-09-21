@@ -173,7 +173,7 @@ __END__
         helo => 'fayland.org',
     );
     
-    #   my $message = Mail::Message->read($rfc822)
+    # my $message = Mail::Message->read($rfc822)
     #         || Email::Simple->new($rfc822)
     #         || Mail::Internet->new([split /\n/, $rfc822])
     #         || ...
@@ -200,7 +200,7 @@ __END__
 
 L<Email::Sender> replaces the old and sometimes problematic L<Email::Send> library, while this module replaces the L<Email::Send::SMTP::TLS>.
 
-It's still alpha. use it at your own risk!
+It is still alpha, but it works. use it at your own risk!
 
 =head2 ATTRIBUTES
 
