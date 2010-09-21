@@ -45,7 +45,6 @@ sub _smtp_client {
         );
     };
 
-    warn $@ if $@;
     $self->_throw($@) if $@;
     $self->_throw("unable to establish SMTP connection") unless $smtp;
 
