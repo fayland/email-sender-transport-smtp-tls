@@ -1,5 +1,9 @@
 Revision history for Email-Sender-Transport-SMTP-TLS
 
+0.05    2010.09.21
+        fix 'Deprecation warning' (reported by Egor)
+        document updates
+
 0.04    2009.11.24
         fix test warnings (GAURAV) (RT 52023)
 

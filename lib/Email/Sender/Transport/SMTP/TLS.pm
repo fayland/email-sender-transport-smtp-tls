@@ -2,8 +2,7 @@ package Email::Sender::Transport::SMTP::TLS;
 
 # ABSTRACT: Email::Sender with L<Net::SMTP::TLS> (Eg. Gmail)
 
-use Moose;
-with 'Email::Sender::Transport' => { excludes => 'allow_partial_success' };
+use Moose 0.90;
 
 use Net::SMTP::TLS;
 use Email::Sender::Failure::Multi;
@@ -46,6 +45,7 @@ sub _smtp_client {
         );
     };
 
+    warn $@ if $@;
     $self->_throw($@) if $@;
     $self->_throw("unable to establish SMTP connection") unless $smtp;
 
@@ -106,17 +106,20 @@ sub send_email {
         );
     }
 
+    my $message;
     eval {
         $smtp->data();
         $smtp->datasend( $email->as_string );
         $smtp->dataend;
+        $message = $smtp->message;
         $smtp->quit;
     };
     # ignore $@
 
-  # XXX: We must report partial success (failures) if applicable.
-    return $self->success unless @failures;
-    return Email::Sender::Success::Partial->new({
+    # XXX: We must report partial success (failures) if applicable.
+    return $self->success({ message => $message }) unless @failures;
+    return $self->partial_success({
+        message => $message,
         failure => Email::Sender::Failure::Multi->new({
           message  => 'some recipients were rejected during RCPT',
           failures => \@failures
@@ -124,6 +127,32 @@ sub send_email {
     });
 }
 
+my %SUCCESS_CLASS;
+BEGIN {
+  $SUCCESS_CLASS{FULL} = Moose::Meta::Class->create_anon_class(
+    superclasses => [ 'Email::Sender::Success' ],
+    roles        => [ 'Email::Sender::Role::HasMessage' ],
+    cache        => 1,
+  );
+  $SUCCESS_CLASS{PARTIAL} = Moose::Meta::Class->create_anon_class(
+    superclasses => [ 'Email::Sender::Success::Partial' ],
+    roles        => [ 'Email::Sender::Role::HasMessage' ],
+    cache        => 1,
+  );
+}
+
+sub success {
+  my $self = shift;
+  my $success = $SUCCESS_CLASS{FULL}->name->new(@_);
+}
+
+sub partial_success {
+  my ($self, @args) = @_;
+  my $obj = $SUCCESS_CLASS{PARTIAL}->name->new(@args);
+  return $obj;
+}
+
+with 'Email::Sender::Transport';
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
@@ -132,7 +161,9 @@ __END__
 
 =head1 SYNOPSIS
 
+    use Email::Sender::Simple qw(sendmail);
     use Email::Sender::Transport::SMTP::TLS;
+    use Try::Tiny;
 
     my $sender = Email::Sender::Transport::SMTP::TLS->new(
         host => 'smtp.gmail.com',
@@ -159,13 +190,11 @@ __END__
         body => 'Content.',
     );
     
-    eval {
-        $sender->send($message, {
-            from => 'username@gmail.com',
-            to   => [ 'to@mail.com' ],
-        } );
+    try {
+        sendmail($message, { transport => $transport });
+    } catch {
+        die "Error sending email: $_";
     };
-    die "Error sending email: $@" if $@;
 
 =head1 DESCRIPTION
 
