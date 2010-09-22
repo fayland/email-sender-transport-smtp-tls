@@ -164,7 +164,7 @@ __END__
     use Email::Sender::Transport::SMTP::TLS;
     use Try::Tiny;
 
-    my $sender = Email::Sender::Transport::SMTP::TLS->new(
+    my $transport = Email::Sender::Transport::SMTP::TLS->new(
         host => 'smtp.gmail.com',
         port => 587,
         username => 'username@gmail.com',
