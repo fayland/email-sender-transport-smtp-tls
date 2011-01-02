@@ -1,5 +1,8 @@
 Revision history for Email-Sender-Transport-SMTP-TLS
 
+0.09    2011.01.02
+        code fixes
+
 0.08    2011.01.01
         use Net::SMTP::TLS::ButMaintained instead of Net::SMTP::TLS
 

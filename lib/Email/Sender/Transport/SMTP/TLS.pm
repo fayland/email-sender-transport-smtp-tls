@@ -4,7 +4,7 @@ package Email::Sender::Transport::SMTP::TLS;
 
 use Moose 0.90;
 
-use Net::SMTP::TLS;
+use Net::SMTP::TLS::ButMaintained;
 use Email::Sender::Failure::Multi;
 use Email::Sender::Success::Partial;
 use Email::Sender::Util;
@@ -36,7 +36,7 @@ sub _smtp_client {
 
     my $smtp;
     eval {
-        $smtp = Net::SMTP::TLS->new(
+        $smtp = Net::SMTP::TLS::ButMaintained->new(
             $self->host,
             Port => $self->port,
             User => $self->username,
