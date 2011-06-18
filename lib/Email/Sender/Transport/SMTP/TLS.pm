@@ -13,6 +13,7 @@ has host => (is => 'ro', isa => 'Str', default => 'localhost');
 has port => (is => 'ro', isa => 'Int', default => 587 );
 has username => (is => 'ro', isa => 'Str', required => 1);
 has password => (is => 'ro', isa => 'Str', required => 1);
+has timeout  => (is => 'ro', isa => 'Int', default => 0);
 has allow_partial_success => (is => 'ro', isa => 'Bool', default => 0);
 has helo      => (is => 'ro', isa => 'Str'); # default to hostname_long
 
@@ -42,6 +43,7 @@ sub _smtp_client {
             User => $self->username,
             Password => $self->password,
             $self->helo ? (Hello => $self->helo) : (),
+            $self->timeout ? (Timeout => $self->timeout) : (),
         );
     };
 
@@ -105,15 +107,19 @@ sub send_email {
         );
     }
 
-    my $message;
     eval {
         $smtp->data();
         $smtp->datasend( $email->as_string );
         $smtp->dataend;
+    };
+    $FAULT->("error at sending: $@") if $@;
+    
+    my $message;
+    eval {
         $message = $smtp->message;
         $smtp->quit;
     };
-    # ignore $@
+    # ignore $@ from ->quit
 
     # XXX: We must report partial success (failures) if applicable.
     return $self->success({ message => $message }) unless @failures;

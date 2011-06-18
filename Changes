@@ -1,5 +1,8 @@
 Revision history for Email-Sender-Transport-SMTP-TLS
 
+0.10    2011.06.18
+        trap errors when send email
+
 0.09    2011.01.02
         code fixes
 
