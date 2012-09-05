@@ -66,7 +66,7 @@ sub send_email {
 
     my $smtp = $self->_smtp_client;
 
-    my $FAULT = sub { $self->_throw($_[0], $smtp); };
+    my $FAULT = sub { $self->_throw($_[0]); };
 
     eval {
         $smtp->mail(_quoteaddr($env->{from}));
@@ -75,7 +75,7 @@ sub send_email {
 
     my @failures;
     my @ok_rcpts;
-  
+
     for my $addr (@to) {
         eval {
             $smtp->to(_quoteaddr($addr));
@@ -85,8 +85,7 @@ sub send_email {
         } else {
             # my ($self, $error, $smtp, $error_class, @rest) = @_;
             push @failures, Email::Sender::Util->_failure(
-                undef,
-                $smtp,
+                undef, undef,
                 recipients => [ $addr ],
             );
         }
@@ -113,7 +112,7 @@ sub send_email {
         $smtp->dataend;
     };
     $FAULT->("error at sending: $@") if $@;
-    
+
     my $message;
     eval {
         $message = $smtp->message;
@@ -177,7 +176,7 @@ __END__
         password => 'password',
         helo => 'fayland.org',
     );
-    
+
     # my $message = Mail::Message->read($rfc822)
     #         || Email::Simple->new($rfc822)
     #         || Mail::Internet->new([split /\n/, $rfc822])
@@ -194,7 +193,7 @@ __END__
         ],
         body => 'Content.',
     );
-    
+
     try {
         sendmail($message, { transport => $transport });
     } catch {
