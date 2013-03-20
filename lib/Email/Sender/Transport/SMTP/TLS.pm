@@ -2,20 +2,24 @@ package Email::Sender::Transport::SMTP::TLS;
 
 # ABSTRACT: Email::Sender with L<Net::SMTP::TLS> (Eg. Gmail)
 
-use Moose 0.90;
+use Moo;
+use MooX::Types::MooseLike::Base qw(Bool Int Str);
 
 use Net::SMTP::TLS::ButMaintained;
 use Email::Sender::Failure::Multi;
 use Email::Sender::Success::Partial;
 use Email::Sender::Util;
 
-has host => (is => 'ro', isa => 'Str', default => 'localhost');
-has port => (is => 'ro', isa => 'Int', default => 587 );
-has username => (is => 'ro', isa => 'Str', required => 1);
-has password => (is => 'ro', isa => 'Str', required => 1);
-has timeout  => (is => 'ro', isa => 'Int', default => 0);
-has allow_partial_success => (is => 'ro', isa => 'Bool', default => 0);
-has helo      => (is => 'ro', isa => 'Str'); # default to hostname_long
+has host => (is => 'ro', isa => Str, default => sub { 'localhost' });
+has port => (is => 'ro', isa => Int, default => sub { 587 });
+
+has username => (is => 'ro', isa => Str, required => 1);
+has password => (is => 'ro', isa => Str, required => 1);
+
+has timeout => (is => 'ro', isa => Int, default => sub { 0 });
+has allow_partial_success => (is => 'ro', isa => Bool, default => sub { 0 });
+has helo      => (is => 'ro', isa => Str);
+
 
 # From http://search.cpan.org/src/RJBS/Email-Sender-0.000/lib/Email/Sender/Transport/SMTP.pm
 ## I am basically -sure- that this is wrong, but sending hundreds of millions of
@@ -66,7 +70,7 @@ sub send_email {
 
     my $smtp = $self->_smtp_client;
 
-    my $FAULT = sub { $self->_throw($_[0]); };
+    my $FAULT = sub { $self->_throw($_[0], $smtp); };
 
     eval {
         $smtp->mail(_quoteaddr($env->{from}));
@@ -85,7 +89,7 @@ sub send_email {
         } else {
             # my ($self, $error, $smtp, $error_class, @rest) = @_;
             push @failures, Email::Sender::Util->_failure(
-                undef, undef,
+                undef, $smtp,
                 recipients => [ $addr ],
             );
         }
@@ -120,7 +124,7 @@ sub send_email {
     };
     # ignore $@ from ->quit
 
-    # XXX: We must report partial success (failures) if applicable.
+    # We must report partial success (failures) if applicable.
     return $self->success({ message => $message }) unless @failures;
     return $self->partial_success({
         message => $message,
@@ -131,34 +135,19 @@ sub send_email {
     });
 }
 
-my %SUCCESS_CLASS;
-BEGIN {
-  $SUCCESS_CLASS{FULL} = Moose::Meta::Class->create_anon_class(
-    superclasses => [ 'Email::Sender::Success' ],
-    roles        => [ 'Email::Sender::Role::HasMessage' ],
-    cache        => 1,
-  );
-  $SUCCESS_CLASS{PARTIAL} = Moose::Meta::Class->create_anon_class(
-    superclasses => [ 'Email::Sender::Success::Partial' ],
-    roles        => [ 'Email::Sender::Role::HasMessage' ],
-    cache        => 1,
-  );
-}
-
 sub success {
   my $self = shift;
-  my $success = $SUCCESS_CLASS{FULL}->name->new(@_);
+  my $success = Moo::Role->create_class_with_roles('Email::Sender::Success', 'Email::Sender::Role::HasMessage')->new(@_);
 }
 
 sub partial_success {
-  my ($self, @args) = @_;
-  my $obj = $SUCCESS_CLASS{PARTIAL}->name->new(@args);
-  return $obj;
+  my $self = shift;
+  my $partial_success = Moo::Role->create_class_with_roles('Email::Sender::Success::Partial', 'Email::Sender::Role::HasMessage')->new(@_);
 }
 
 with 'Email::Sender::Transport';
-__PACKAGE__->meta->make_immutable;
-no Moose;
+no Moo;
+
 1;
 
 __END__
