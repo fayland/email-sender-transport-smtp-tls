@@ -1,5 +1,8 @@
 Revision history for Email-Sender-Transport-SMTP-TLS
 
+0.13    2013.04.16
+        fix Can't locate object method "code" via package "Net::SMTP::TLS::ButMaintained"
+
 0.12    2013.03.20
         use Moo with latest Email::Sender
 

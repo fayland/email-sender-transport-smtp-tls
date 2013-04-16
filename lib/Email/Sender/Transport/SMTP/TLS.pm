@@ -70,7 +70,7 @@ sub send_email {
 
     my $smtp = $self->_smtp_client;
 
-    my $FAULT = sub { $self->_throw($_[0], $smtp); };
+    my $FAULT = sub { $self->_throw($_[0]); };
 
     eval {
         $smtp->mail(_quoteaddr($env->{from}));
@@ -89,7 +89,7 @@ sub send_email {
         } else {
             # my ($self, $error, $smtp, $error_class, @rest) = @_;
             push @failures, Email::Sender::Util->_failure(
-                undef, $smtp,
+                $@, undef,
                 recipients => [ $addr ],
             );
         }
