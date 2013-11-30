@@ -1,5 +1,8 @@
 Revision history for Email-Sender-Transport-SMTP-TLS
 
+0.15    2013-11-30
+        DEPERCATED in favor of Email::Sender::Transport::SMTPS (no code changes, it still works)
+
 0.14    2013.05.08
         fix Wrong (?) Version of Email::Sender in Preqs (RT 85116)
 

@@ -191,6 +191,8 @@ __END__
 
 =head1 DESCRIPTION
 
+B<If you have never used it before, please try L<Email::Sender::Transport::SMTPS> instead. it's recommended.>
+
 L<Email::Sender> replaces the old and sometimes problematic L<Email::Send> library, while this module replaces the L<Email::Send::SMTP::TLS>.
 
 It is still alpha, but it works. use it at your own risk!
