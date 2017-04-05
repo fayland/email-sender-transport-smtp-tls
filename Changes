@@ -1,5 +1,8 @@
 Revision history for Email-Sender-Transport-SMTP-TLS
 
+0.16    2017-04-05
+        POD update in favor of Email::Sender::Transport::SMTP
+
 0.15    2013-11-30
         DEPERCATED in favor of Email::Sender::Transport::SMTPS (no code changes, it still works)
 
